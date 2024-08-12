@@ -74,8 +74,8 @@ def main():
 
     models = {
         'Logistic Regression': LogisticRegression(max_iter=1000),
-        # 'Random Forest': RandomForestClassifier(random_state=42),
-        # 'Gradient Boosting': GradientBoostingClassifier(random_state=42)
+        'Random Forest': RandomForestClassifier(random_state=42),
+        'Gradient Boosting': GradientBoostingClassifier(random_state=42)
     }
 
     # Evaluate models using cross-validation
