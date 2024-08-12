@@ -1,0 +1,318 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\title{AMAT 592 Final Project}
+\author{Devin P. O'Brien}
+\date{August 11, 2024}
+
+\begin{document}
+\maketitle
+
+\section{Abstract}
+
+In today’s digital economy, credit card fraud presents a significant challenge to financial institutions, leading to substantial losses and the disruption of consumer trust. This project aims to develop a robust machine learning model capable of accurately detecting fraudulent credit card transactions. Utilizing the publicly available Credit Card Fraud Detection dataset from Kaggle, which contains 492 frauds out of 284,807 transactions and is highly imbalanced. This study explores various data preprocessing techniques, including oversampling and undersampling, to address class imbalance.
+
+\ \\
+\noindent
+A comparative analysis of different classification algorithms, such as Logistic Regression, Random Forest, and Gradient Boosting Machines, is conducted, with a focus on optimizing model performance through feature engineering and hyperparameter tuning. Evaluation metrics such as Precision, Recall, F1-score, and ROC-AUC are employed to assess the model’s ability to accurately identify fraudulent transactions while minimizing false positives.
+
+\ \\
+\noindent
+The findings of this project aim to contribute to the development of more effective fraud detection systems, providing financial institutions with a tool to enhance transaction security and protect consumers from fraudulent activities.
+
+
+\section{Problem Definition}
+
+This project aims to address the following core problem: How can machine learning be utilized to accurately detect fraudulent credit card transactions while minimizing the rate of false positives? Specifically, we will explore the use of various machine learning algorithms to classify transactions as either fraudulent or legitimate based on a set of features derived from transaction data.
+
+\ \\
+\noindent
+Key challenges include:
+
+\begin{enumerate}
+    \item \textbf{Imbalanced Data}: The dataset is heavily skewed, with fraudulent transactions making up a very small percentage of the total. This imbalance can lead to models that are biased toward predicting the majority class, thereby overlooking the minority class (fraud).
+
+    \item \textbf{Feature Engineering}: Identifying and engineering features that effectively capture the patterns and anomalies associated with fraudulent transactions is crucial for improving model performance.
+    
+    \item \textbf{Model Evaluation}: Given the imbalance, traditional accuracy metrics are insufficient. The model's performance will be evaluated using metrics that better reflect the cost of false positives and false negatives, such as Precision, Recall, F1-score, and the Area Under the Receiver Operating Characteristic Curve (ROC-AUC).
+
+\end{enumerate}
+
+\noindent
+By addressing these challenges, the project seeks to develop a machine learning model that can be implemented in real-world financial systems to detect fraudulent transactions more effectively and reduce financial losses for institutions and consumers alike.
+
+\section{Relevant Literature}
+
+Credit card fraud detection has garnered significant attention in the machine learning community due to its critical impact on financial security. Traditional rule-based systems, once prevalent in fraud detection, have proven inadequate in adapting to the rapidly evolving tactics of fraudsters. As a result, machine learning approaches, particularly supervised learning models like Logistic Regression, Decision Trees, and more advanced techniques like Random Forests and Gradient Boosting Machines (GBM), have become the preferred methods. These models, when combined with effective feature engineering, have shown promise in detecting complex fraud patterns.
+
+\ \\
+\noindent
+However, a major challenge in fraud detection is the significant class imbalance, with fraudulent transactions comprising a small fraction of the dataset. To address this, techniques such as Synthetic Minority Over-sampling Technique (SMOTE) and cost-sensitive learning have been employed to improve model performance. Additionally, researchers have highlighted the limitations of accuracy as an evaluation metric in this context, advocating instead for metrics like Precision, Recall, F1-score, and ROC-AUC to better capture the trade-offs involved in fraud detection. Recent advances, including the use of ensemble methods and deep learning techniques like Convolutional Neural Networks (CNNs), offer promising avenues for improving detection rates, though they often come with increased computational complexity.
+
+\section{Data Collection}
+
+The dataset used in this project is the Credit Card Fraud Detection dataset, which is publicly available on Kaggle. This dataset contains transactions made by European cardholders during September 2013, with a total of 284,807 transactions. Out of these, 492 transactions are labeled as fraudulent, representing approximately 0.17\% of the entire dataset. This significant class imbalance presents a challenge, as it requires careful consideration of the methods used to train and evaluate the machine learning models.
+
+\ \\
+\noindent
+The dataset includes 30 features, most of which are the result of a principal component analysis (PCA) transformation applied to anonymize the original transaction data. These features, named V1 through V28, are the principal components that capture the most variance in the data. In addition to these, the dataset contains the following columns:
+
+\begin{enumerate}
+    \item Time: The time elapsed between the transaction and the first transaction in the dataset, measured in seconds.
+
+    \item Amount: The transaction amount, which could be indicative of the type of transaction or its potential to be fraudulent.
+
+    \item Class: The target variable, where 1 indicates a fraudulent transaction, and 0 indicates a legitimate one.
+\end{enumerate}
+
+\noindent
+Given the nature of the data, feature engineering and careful handling of the class imbalance are critical steps in the preprocessing stage. The PCA-transformed features provide an added layer of complexity, as their abstract nature requires thoughtful consideration when selecting and tuning models. Despite these challenges, the dataset offers a valuable opportunity to develop and test machine learning models in a realistic fraud detection scenario.
+
+\section{Preprocessing}
+
+The preprocessing step is crucial for preparing the credit card fraud detection dataset for machine learning model training. The following Python script performs several essential preprocessing tasks:
+
+\subsection{Loading the Dataset}
+
+The dataset is loaded into a pandas DataFrame using \verb|pd.read_csv()|. This dataset, available at the specified URL, contains various features related to credit card transactions and labels indicating whether a transaction is fraudulent or not.
+
+
+\subsection{Basic Data Exploration}
+
+The script prints the first few rows of the dataset using \verb|df.head()| to get an initial look at the data.
+
+\ \\
+\verb|df.info()| provides information on the dataset’s structure, including the number of non-null entries in each column.
+
+\ \\
+\verb|df.describe()| gives summary statistics for numerical features, helping to understand their distributions. 
+
+\ \\
+It also prints the number of fraudulent transactions to highlight the class imbalance.
+
+\subsection{Checking for Missing Values}
+
+The script checks for any missing values in the dataset using df.isnull().sum(). Although the dataset is known to be clean, this step ensures that no missing values are present that could affect model performance.
+
+\subsection{Feature Scaling}
+
+The Amount and Time features are scaled using StandardScaler. Scaling ensures that these features have zero mean and unit variance, which is important for algorithms sensitive to the scale of input features. This step helps in achieving better model convergence and performance.
+
+\subsection{Splitting the Data}
+
+The dataset is split into training and testing sets using $train_test_split$ from sklearn. This is done to evaluate the model on unseen data and avoid overfitting. The split ratio is set to 70% training and 30% testing. Stratified sampling is used to maintain the proportion of fraudulent and non-fraudulent transactions in both sets.
+
+\subsection{Handling Class Imbalance}
+
+The SMOTE (Synthetic Minority Over-sampling Technique) is applied to the training data to address the class imbalance. SMOTE generates synthetic samples for the minority class (fraudulent transactions) to balance the class distribution in the training set. This helps the model learn better from the minority class and improves its ability to detect fraud.
+
+\subsection{Verification of Resampling}
+
+The script prints the class distributions before and after applying SMOTE to verify that the resampling process has successfully balanced the classes in the training data.
+This preprocessing script ensures that the data is clean, scaled appropriately, and balanced, setting a solid foundation for training and evaluating machine learning models.
+
+\section{Model Training and Evaluation}
+
+In this section, we detail the training and evaluation of the machine learning models used for credit card fraud detection. The models are evaluated using cross-validation to ensure robust performance and avoid overfitting. This process includes data preparation, model definition, training, and evaluation.
+
+\subsection{Model Definitions}
+
+Three models are utilized for evaluation:
+
+\begin{itemize}
+    \item \textbf{Logistic Regression}: A linear model used for binary classification that estimates probabilities based on a logistic function.
+    \item \textbf{Random Forest}: An ensemble method using multiple decision trees to improve classification performance and handle complex patterns in the data.
+    \item \textbf{Gradient Boosting}: An ensemble technique that builds models sequentially, each correcting errors made by the previous models.
+\end{itemize}
+
+\subsection{Model Training}
+
+For each model, the following steps are carried out:
+
+\begin{enumerate}
+    \item \textbf{Cross-Validation}:
+    \begin{itemize}
+        \item We perform 5-fold cross-validation using \texttt{cross\_val\_score}, with ROC AUC as the scoring metric to evaluate the model’s discriminative ability.
+    \end{itemize}
+    \item \textbf{Model Fitting}:
+    \begin{itemize}
+        \item Each model is trained on the entire resampled training dataset and then evaluated on the test set.
+    \end{itemize}
+    \item \textbf{Performance Metrics}:
+    \begin{itemize}
+        \item The mean ROC AUC score from cross-validation provides an indication of the model’s performance across different folds.
+        \item The ROC AUC score on the test set, precision, recall, F1-score, and accuracy metrics are reported to evaluate how well the model performs on unseen data.
+        \item The time taken for training and evaluation is recorded.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Results}
+
+\paragraph{Logistic Regression}
+\begin{itemize}
+    \item \textbf{Mean ROC AUC Score from Cross-Validation}: 0.9933
+    \item \textbf{Test ROC AUC Score}: 0.9660
+\end{itemize}
+
+\begin{table}[h!]
+\centering
+\caption{Classification Report for Logistic Regression}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{Support} \\
+\hline
+0 & 1.00 & 0.98 & 0.99 & 85295 \\
+1 & 0.06 & 0.88 & 0.12 & 148 \\
+\hline
+\textbf{Accuracy} & & & 0.98 & 85443 \\
+\textbf{Macro Avg} & 0.53 & 0.93 & 0.55 & 85443 \\
+\textbf{Weighted Avg} & 1.00 & 0.98 & 0.99 & 85443 \\
+\hline
+\end{tabular}
+\end{table}
+
+\paragraph{Random Forest}
+\begin{itemize}
+    \item \textbf{Mean ROC AUC Score from Cross-Validation}: 1.0000
+    \item \textbf{Test ROC AUC Score}: 0.9512
+\end{itemize}
+
+\begin{table}[h!]
+\centering
+\caption{Classification Report for Random Forest}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{Support} \\
+\hline
+0 & 1.00 & 1.00 & 1.00 & 85295 \\
+1 & 0.87 & 0.79 & 0.83 & 148 \\
+\hline
+\textbf{Accuracy} & & & 1.00 & 85443 \\
+\textbf{Macro Avg} & 0.93 & 0.90 & 0.91 & 85443 \\
+\textbf{Weighted Avg} & 1.00 & 1.00 & 1.00 & 85443 \\
+\hline
+\end{tabular}
+\end{table}
+
+\
+
+\paragraph{Gradient Boosting}
+\begin{itemize}
+    \item \textbf{Mean ROC AUC Score from Cross-Validation}: 0.9990
+    \item \textbf{Test ROC AUC Score}: 0.9704
+\end{itemize}
+
+\begin{table}[h!]
+\centering
+\caption{Classification Report for Gradient Boosting}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{Support} \\
+\hline
+0 & 1.00 & 0.99 & 0.99 & 85295 \\
+1 & 0.11 & 0.86 & 0.19 & 148 \\
+\hline
+\textbf{Accuracy} & & & 0.99 & 85443 \\
+\textbf{Macro Avg} & 0.55 & 0.93 & 0.59 & 85443 \\
+\textbf{Weighted Avg} & 1.00 & 0.99 & 0.99 & 85443 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Evaluation}
+
+\begin{itemize}
+    \item \textbf{Logistic Regression} shows a strong performance with a mean ROC AUC score of 0.9933 from cross-validation and a test ROC AUC score of 0.9660. However, it struggles with detecting fraudulent transactions (low recall for class 1).
+    \item \textbf{Random Forest} achieves a perfect mean ROC AUC score of 1.0000 in cross-validation and a test ROC AUC score of 0.9512, demonstrating its effectiveness in classification. It provides good precision and recall for class 1, indicating a well-balanced model.
+    \item \textbf{Gradient Boosting} yields a mean ROC AUC score of 0.9990 from cross-validation and a test ROC AUC score of 0.9704. While it performs well overall, its precision for class 1 is low, but recall is high, indicating good detection of fraudulent transactions.
+\end{itemize}
+
+\section{Model Tuning and Evaluation}
+
+To optimize the performance of the Random Forest classifier for the credit card fraud detection task, hyperparameter tuning was conducted using \texttt{GridSearchCV}. The Random Forest model was selected due to its strong performance in handling imbalanced datasets and its ability to provide feature importance insights.
+
+\
+
+\noindent
+A streamlined hyperparameter grid was created to reduce computational complexity while still allowing for effective model optimization. The grid included the following parameters:
+
+\begin{itemize}
+    \item \texttt{n\_estimators}: [50, 100]
+    \item \texttt{max\_depth}: [10, 20]
+    \item \texttt{min\_samples\_split}: [5]
+    \item \texttt{min\_samples\_leaf}: [1, 2]
+\end{itemize}
+
+\noindent
+This grid resulted in 8 unique hyperparameter combinations, and with 3-fold cross-validation, a total of 24 model fits were performed. This approach efficiently explored the parameter space while minimizing the time required for the tuning process.
+
+\
+
+\noindent
+Upon completion of the grid search, the best hyperparameters were identified as follows:
+
+\begin{itemize}
+    \item \texttt{max\_depth}: 20
+    \item \texttt{min\_samples\_leaf}: 2
+    \item \texttt{min\_samples\_split}: 5
+    \item \texttt{n\_estimators}: 100
+\end{itemize}
+
+\noindent
+These parameters yielded an impressive cross-validated ROC AUC score of 0.99999, indicating strong model performance during the training phase.
+
+\
+
+\noindent
+The optimized Random Forest model was then evaluated on the test set, achieving the following results:
+
+\begin{itemize}
+    \item \textbf{Test ROC AUC Score}: 0.96580
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Metric}        & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{Support} \\ \hline
+\textbf{Class 0}       & 1.00               & 1.00            & 1.00              & 85,295           \\ \hline
+\textbf{Class 1}       & 0.80               & 0.79            & 0.80              & 148              \\ \hline
+\textbf{Accuracy}      &                    &                 & 1.00              & 85,443           \\ \hline
+\textbf{Macro Avg}     & 0.90               & 0.90            & 0.90              & 85,443           \\ \hline
+\textbf{Weighted Avg}  & 1.00               & 1.00            & 1.00              & 85,443           \\ \hline
+\end{tabular}
+\caption{Classification Report of the Optimized Random Forest Model}
+\end{table}
+
+\noindent
+The model demonstrated excellent precision and recall for the minority class (fraudulent transactions), with an F1-score of 0.80. The high overall accuracy and weighted average metrics further confirm the model's effectiveness in distinguishing between fraudulent and non-fraudulent transactions.
+
+\
+
+\noindent
+These results suggest that the optimized Random Forest model is well-suited for deployment in a real-world credit card fraud detection system, where minimizing both false positives and false negatives is crucial for maintaining operational efficiency and customer trust.
+
+
+\section{Conclusion and Future Work}
+
+Through this analysis, we successfully developed and optimized a Random Forest classifier for credit card fraud detection, leveraging a streamlined hyperparameter tuning process. The final model demonstrated exceptional performance, with a test ROC AUC score of 0.96580 and a strong balance between precision and recall for the minority class. These results indicate that the model is highly effective in distinguishing fraudulent transactions from legitimate ones, making it a valuable tool for real-world deployment.
+
+\
+
+\noindent
+While the current model performs well, there is still room for further improvement. Future work could explore the integration of more advanced techniques, such as ensemble learning with other algorithms or the use of deep learning models like neural networks, to enhance the model's predictive capabilities. Additionally, incorporating real-time data streams and adaptive learning techniques could further improve the model's ability to detect emerging fraud patterns. Lastly, expanding the dataset and exploring feature engineering techniques could lead to even better model performance and generalization.
+
+\
+
+\noindent
+Overall, the findings of this study contribute to the ongoing efforts in combating credit card fraud, offering a robust and efficient solution that can be readily applied in practical settings.
+
+
+\end{document}
